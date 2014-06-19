@@ -15,7 +15,7 @@ class ProcessFieldGenerator extends Process implements Module
 	{
 		return array(
 			'title' => 'Field Generator', 
-			'version' => 100, 
+			'version' => 80, 
 			'summary' => 'Generate random strings for any field',
 			'href' => 'https://github.com/plauclair/FieldGenerator', 
 			'singular' => true, 
