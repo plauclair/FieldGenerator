@@ -188,22 +188,83 @@ class ProcessFieldGenerator extends Process implements Module
 		}
 
 		//create required template
-		$g = new Fieldgroup();
-		$g->name = "fieldgenerator";
-		$g->add("title");
-		$g->add("fieldgenerator_template");
-		$g->add("fieldgenerator_parentid");
-		$g->add("fieldgenerator_field");
-		$g->add("fieldgenerator_length");
-		$g->add("fieldgenerator_dictionary");
-		$g->save();
+		if (!$this->templates->get('fieldgenerator')) {
+			$g = new Fieldgroup();
+			$g->name = "fieldgenerator";
+			$g->add("title");
+			$g->add("fieldgenerator_template");
+			$g->add("fieldgenerator_parentid");
+			$g->add("fieldgenerator_field");
+			$g->add("fieldgenerator_length");
+			$g->add("fieldgenerator_dictionary");
+			$g->save();
 
-		$t = new Template();
-		$t->name = "fieldgenerator";
-		$t->flags = Template::flagSystem;
-		$t->set('parentTemplates',array(2));
-		$t->fields = $g;
-		$t->save();
+
+			$t = new Template();
+			$t->name = "fieldgenerator";
+			$t->flags = Template::flagSystem;
+			$t->set('parentTemplates',array(2));
+			$t->fields = $g;
+			$t->save();
+		}
+	}
+
+	public function ___uninstall() 
+	{	
+		$settings = $this->pages->find('template=fieldgenerator, include=all');
+		if ($settings) {
+			foreach ($settings as $s) {
+				$s->delete();
+			}
+		}
+
+		$setupPage = $this->pages->get('name=field-generator, include=all');
+		if ($setupPage) {
+			$setupPage->delete();
+		}
+
+		$t = $this->templates->get("fieldgenerator");
+		$t->flags = Template::flagSystemOverride;
+		$t->flags = 0;
+		$g = $t->fieldgroup;
+
+		$f = $this->fields->get('fieldgenerator_template');
+		$f->flags = Template::flagSystemOverride;
+		$f->flags = 0;
+		$g->remove('fieldgenerator_template');
+		$g->save();
+		$this->fields->delete($f);
+
+		$f = $this->fields->get('fieldgenerator_parentid');
+		$f->flags = Template::flagSystemOverride;
+		$f->flags = 0;
+		$g->remove('fieldgenerator_parentid');
+		$g->save();
+		$this->fields->delete($f);
+
+		$f = $this->fields->get('fieldgenerator_field');
+		$f->flags = Template::flagSystemOverride;
+		$f->flags = 0;
+		$g->remove('fieldgenerator_field');
+		$g->save();
+		$this->fields->delete($f);
+
+		$f = $this->fields->get('fieldgenerator_length');
+		$f->flags = Template::flagSystemOverride;
+		$f->flags = 0;
+		$g->remove('fieldgenerator_length');
+		$g->save();
+		$this->fields->delete($f);
+
+		$f = $this->fields->get('fieldgenerator_dictionary');
+		$f->flags = Template::flagSystemOverride;
+		$f->flags = 0;
+		$g->remove($f);
+		$g->save();
+		$this->fields->delete($f);
+
+		$this->templates->delete($t);
+		$this->fieldgroups->delete($g);
 	}
 	
 }
