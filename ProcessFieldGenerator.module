@@ -16,7 +16,7 @@ class ProcessFieldGenerator extends Process implements Module
 		return array(
 			'title' => 'Field Generator', 
 			'version' => 100, 
-			'summary' => 'Field generator.',
+			'summary' => 'Generate random strings for any field',
 			'href' => 'https://github.com/plauclair/FieldGenerator', 
 			'singular' => true, 
 			'autoload' => true, 
@@ -136,7 +136,7 @@ class ProcessFieldGenerator extends Process implements Module
 			$p->template = 'admin'; 
 			$p->parent = $this->pages->get($this->config->adminRootPageID)->child('name=setup');	 
 			$p->name = 'field-generator';
-			$p->title = 'Field generator';
+			$p->title = 'Field Generator';
 			$p->process = "ProcessFieldGenerator";
 			$p->save();
 		}
