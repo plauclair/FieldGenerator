@@ -8,7 +8,7 @@
  * Licensed under GNU/GPL v2, see LICENSE.TXT
  */
 
-class FieldGenerator extends Process implements Module 
+class ProcessFieldGenerator extends Process implements Module 
 {
 
 	public static function getModuleInfo() 
@@ -136,45 +136,56 @@ class FieldGenerator extends Process implements Module
 			$p->template = 'admin'; 
 			$p->parent = $this->pages->get($this->config->adminRootPageID)->child('name=setup');	 
 			$p->name = 'field-generator';
-			$p->title = 'Field generator'; 
+			$p->title = 'Field generator';
+			$p->process = "ProcessFieldGenerator";
 			$p->save();
 		}
 
 		// create required fields
-		$f = new Field();
-		$f->name = "fieldgenerator_template";
-		$f->type = "Text";
-		$f->label = "Template";
-		$f->flags = Field::flagSystem;
-		$f->save();
+		if (!$this->fields->get('fieldgenerator_template')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_template";
+			$f->type = "Text";
+			$f->label = "Template";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
 
-		$f = new Field();
-		$f->name = "fieldgenerator_parentid";
-		$f->type = "Text";
-		$f->label = "Parent ID";
-		$f->flags = Field::flagSystem;
-		$f->save();
+		if (!$this->fields->get('fieldgenerator_parentid')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_parentid";
+			$f->type = "Text";
+			$f->label = "Parent ID";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
 
-		$f = new Field();
-		$f->name = "fieldgenerator_field";
-		$f->type = "Text";
-		$f->label = "Field name";
-		$f->flags = Field::flagSystem;
-		$f->save();
+		if (!$this->fields->get('fieldgenerator_field')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_field";
+			$f->type = "Text";
+			$f->label = "Field name";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
 
-		$f = new Field();
-		$f->name = "fieldgenerator_length";
-		$f->type = "Integer";
-		$f->label = "Length";
-		$f->flags = Field::flagSystem;
-		$f->save();
+		if (!$this->fields->get('fieldgenerator_length')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_length";
+			$f->type = "Integer";
+			$f->label = "Length";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
 
-		$f = new Field();
-		$f->name = "fieldgenerator_dictionary";
-		$f->type = "Text";
-		$f->label = "Dictionary";
-		$f->flags = Field::flagSystem;
-		$f->save();
+		if (!$this->fields->get('fieldgenerator_dictionary')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_dictionary";
+			$f->type = "Text";
+			$f->label = "Dictionary";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
 
 		//create required template
 		$g = new Fieldgroup();
