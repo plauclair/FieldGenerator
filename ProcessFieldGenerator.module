@@ -62,8 +62,6 @@ class ProcessFieldGenerator extends Process implements Module
 
 	/**
 	 * Main generator function
-	 *
-	 * TODO : Implement template support
 	 */
 
 	public function generatefield($event)
@@ -125,7 +123,18 @@ class ProcessFieldGenerator extends Process implements Module
 		}
 	}
 
-	//------------------------------
+	/**
+	* Setup page
+	*/
+
+	public function ___execute()
+	{	
+		return __("Coming soon! Until then, create your rules through Admin > Setup > Field Generator -- New and select fieldgenerator as a template");
+	}
+
+	/**
+	 * Install and uninstall
+	 */
 
 	public function ___install() 
 	{	
