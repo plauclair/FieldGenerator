@@ -110,7 +110,7 @@ class ProcessFieldGenerator extends Process implements Module
 					// actual string generation
 					$value = $this->getToken($rule->fieldgenerator_length, $rule->fieldgenerator_dictionary,'');
 					// verify it's not used already
-					$check = wire('pages')->find("$field=$value");
+					$check = $this->pages->find("$field=$value");
 					if(count($check) == 0) {
 						$uniqueValue = true;
 					}
