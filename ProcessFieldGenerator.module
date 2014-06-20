@@ -15,7 +15,7 @@ class ProcessFieldGenerator extends Process implements Module
 	{
 		return array(
 			'title' => 'Field Generator', 
-			'version' => 80, 
+			'version' => 90, 
 			'summary' => 'Generate random strings for any field',
 			'href' => 'https://github.com/plauclair/FieldGenerator', 
 			'singular' => true, 
@@ -129,7 +129,90 @@ class ProcessFieldGenerator extends Process implements Module
 
 	public function ___execute()
 	{	
-		return __("Coming soon! Until then, create your rules through Admin > Setup > Field Generator -- New and select fieldgenerator as a template");
+		$styles = "<style>
+			.fg-override.ui-state-default {
+				height:auto;
+				line-height:80%;
+				padding:5px 8px;
+				margin-right: 10px;
+			}
+			.fg-override.ui-state-hover {
+				height:auto;
+				line-height:80%;
+				padding:5px 8px;
+				margin-right: 10px;
+			}
+			.fg-trash {
+				vertical-align:middle;
+			}
+			</style>";
+		$table = $this->modules->get("MarkupAdminDataTable");
+		$table->setSortable(false); 
+		$table->setEncodeEntities(false);
+		$table->headerRow(array(
+			__("Template Name"),
+			__("Parent ID"),
+			__("Field Name*"),
+			__("Length*"),
+			__("Dictionary*"),
+			__("Actions")
+			));
+		$settings = $this->pages->find("template=fieldgenerator");
+		$noSettings = "";
+		if(count($settings) > 0){
+			foreach ($settings as $s) {
+				$table->row(array(
+					"<form method=\"post\" action=\"saverule/\">" .
+					"<input type=\"hidden\" name=\"id\" value=\"$s->id\">" .
+					"<input type=\"text\" name=\"template\" value=\"{$s->fieldgenerator_template}\">",
+					"<input type=\"text\" name=\"parentid\" value=\"{$s->fieldgenerator_parentid}\">",
+					"<input type=\"text\" name=\"field\" value=\"{$s->fieldgenerator_field}\">",
+					"<input type=\"text\" name=\"length\" value=\"{$s->fieldgenerator_length}\">",
+					"<input type=\"text\" name=\"dictionary\" value=\"{$s->fieldgenerator_dictionary}\">",
+					"<input type=\"submit\" value=\"Save\" class=\"ui-button fg-override ui-state-default\"> " . 
+					"<a href=\"deleterule/?id={$s->id}\" class=\"fg-trash\"><i class=\"fa fa-trash-o\"></i></a>" .
+					"</form>"
+				));
+			}
+		} else {
+			$noSettings = __("<h2>There are no rules set, click on the button below to add one.</h2>");
+		}
+		$table->action(array(__('Add rule') => "" . 'addrule/'));
+		return $styles . $noSettings . $table->render();
+	}
+
+	public function ___executeAddRule() 
+	{
+		$setupPage = $this->pages->get('template=admin, name=field-generator');
+		$s = new Page();
+		$s->parent = $setupPage;
+		$s->template = "fieldgenerator";
+		$s->title = "Field Generator Rule";
+		$s->fieldgenerator_length = 6;
+		$s->fieldgenerator_dictionary = "1234567890";
+		$s->save();
+		$this->session->redirect("..");
+	}
+
+	public function ___executeDeleteRule() 
+	{
+		$id = $this->input->get->id;
+		$s = $this->pages->get($id);
+		$s->delete();
+		$this->session->redirect("..");
+	}
+
+	public function ___executeSaveRule() 
+	{
+		$id = $this->input->post->id;
+		$s = $this->pages->get($id);
+		$s->fieldgenerator_template = $this->sanitizer->text(trim($this->input->post->template));
+		$s->fieldgenerator_parentid = $this->sanitizer->text(trim($this->input->post->parentid));
+		$s->fieldgenerator_field = $this->sanitizer->text(trim($this->input->post->field));
+		$s->fieldgenerator_length = $this->sanitizer->text(trim($this->input->post->length));
+		$s->fieldgenerator_dictionary = $this->sanitizer->text(trim($this->input->post->dictionary));
+		$s->save();
+		$this->session->redirect("..");
 	}
 
 	/**
