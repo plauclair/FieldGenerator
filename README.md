@@ -27,6 +27,12 @@ You can mix both _Parent ID_ and _Template_ to use them as a combination. Rules 
 
 Field Generator makes no effort to find conflicting rules. If two different rules happen to apply on any given field, both will run. We trust you on that one.
 
+**Versions**
+
+0.9.0 - Adds language fields support.
+
+0.8.0 - Initial release version, with Setup panel support.
+
 **License**
 
 The MIT License (MIT)
