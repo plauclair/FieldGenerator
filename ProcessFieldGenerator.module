@@ -8,136 +8,18 @@
  * Licensed under The MIT License (MIT), see README.md
  */
 
-class ProcessFieldGenerator extends Process implements Module 
+class ProcessFieldGenerator extends Process
 {
 
 	public static function getModuleInfo() 
 	{
 		return array(
 			'title' => 'Field Generator', 
-			'version' => 96, 
+			'version' => 99, 
 			'summary' => 'Generate random strings for any field',
 			'href' => 'https://github.com/plauclair/FieldGenerator', 
 			'singular' => true, 
-			'autoload' => true, 
 			);
-	}
-
-	/**
-	 * Initialize the module
-	 */
-
-	public function init() 
-	{
-		$this->pages->addHookAfter('setupNew', $this, 'generatefield'); 
-	}
-
-	/**
-	 * Helper functions
-	 */
-
-	private function crypto_rand_secure($min, $max) 
-	{
-		$range = $max - $min;
-		if ($range < 0) return $min; // not so random...
-		$log = log($range, 2);
-		$bytes = (int) ($log / 8) + 1; // length in bytes
-		$bits = (int) $log + 1; // length in bits
-		$filter = (int) (1 << $bits) - 1; // set all lower bits to 1
-		do {
-			$rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
-			$rnd = $rnd & $filter; // discard irrelevant bits
-		} while ($rnd >= $range);
-		return $min + $rnd;
-	}
-
-	private function getToken($length,$dict,$pre)
-	{
-			$token = $pre;
-			for ($i=0;$i<$length;$i++) {
-				$token .= $dict[$this->crypto_rand_secure(0,strlen($dict))];
-			}
-			return $token;
-	}
-
-	/**
-	 * Main generator function
-	 */
-
-	public function generatefield($event)
-	{
-		$page = $event->arguments[0]; 
-
-		// Grab the new page's parent template 
-		$parentId = $page->parent()->id;
-		$pageTemplate = $page->template;
-		
-		// check if it matches against some rule
-		foreach (wire('pages')->find("template=fieldgenerator") as $rule) 
-		{
-			// initiate or reset things
-			$ParentMatch = false;
-			$TemplateMatch = false;
-			$ParentIsSet = false;
-			$TemplateIsSet = false;
-			// does parent ID match
-			if ($parentId == $rule->fieldgenerator_parentid) {
-				$ParentMatch = true;
-			}
-			// does template match
-			if ($pageTemplate == $rule->fieldgenerator_template) {
-				$TemplateMatch = true;
-			}
-			// is rule parent id set
-			if (strlen($rule->fieldgenerator_parentid) > 0) {
-				$ParentIsSet = true;
-			}
-			// is rule template set
-			if (strlen($rule->fieldgenerator_template) > 0) {
-				$TemplateIsSet = true;
-			}
-			// if match, run rule, please forgive ugliness of code
-			if (($ParentMatch and $ParentIsSet and $TemplateMatch and $TemplateIsSet) or 
-				($ParentMatch and $ParentIsSet and !$TemplateMatch and !$TemplateIsSet) or 
-				(!$ParentMatch and !$ParentIsSet and $TemplateMatch and $TemplateIsSet)) 
-			{
-				// there's a match, so let's use the field specified in $rule
-				$field = $rule->fieldgenerator_field;
-				// generate a unique value, let's start by initiating
-				$uniqueValue = false;
-				// loop until it's unique
-				while ($uniqueValue == false) {
-					// actual string generation
-					$value = $this->getToken($rule->fieldgenerator_length, $rule->fieldgenerator_dictionary,'');
-					// verify it's not used already
-					$check = $this->pages->find("$field=$value");
-					if(count($check) == 0) {
-						$uniqueValue = true;
-					}
-				}
-				// set field value
-				// let's check first if the field supports language (and handle the 'name' field exception)
-				if (method_exists($page->$field, "setLanguageValue") or $field == "name") {
-					foreach ($this->languages as $language) {
-						// name field needs a special way of doing things
-						if ($field = "name") {
-							// if this is the default language (not necessarily LanguageSupportPageNames)
-							if ($language->name == "default") $page->$field = $value;
-							// or set language page name
-							if ($this->modules->isInstalled("LanguageSupportPageNames") and $language->name != "default") $page->set($field.$language->id, $value);
-						} else {
-						//else just set the value
-						$page->$field->setLanguageValue($language, $value);
-						}
-					}
-				} else {
-					// if it's not a language field
-					$page->$field = $value;
-				}
-				$this->message("Field '{$field}' was generated");
-				// and we're done
-			}
-		}
 	}
 
 	/**
@@ -192,7 +74,7 @@ class ProcessFieldGenerator extends Process implements Module
 				));
 			}
 		} else {
-			$noSettings = __("<h2>There are no rules set, click on the button below to add one.</h2>");
+			$noSettings = __("There are no rules set, click on the button below to add one.");
 		}
 		$table->action(array(__('Add rule') => "" . 'addrule/'));
 		return $styles . $noSettings . $table->render();
@@ -320,60 +202,63 @@ class ProcessFieldGenerator extends Process implements Module
 
 	public function ___uninstall() 
 	{	
-		$settings = $this->pages->find('template=fieldgenerator, include=all');
-		if ($settings) {
-			foreach ($settings as $s) {
-				$s->delete();
-			}
-		}
 
-		$setupPage = $this->pages->get('name=field-generator, include=all');
-		if ($setupPage) {
-			$setupPage->delete();
-		}
+		// // Remove the fieldgenerator settings pages (fieldgenerator template)
+		// $settings = $this->pages->find('template=fieldgenerator, include=all');
+		// if ($settings) {
+		// 	foreach ($settings as $s) {
+		// 		$s->delete();
+		// 	}
+		// }
 
-		$t = $this->templates->get("fieldgenerator");
-		$t->flags = Template::flagSystemOverride;
-		$t->flags = 0;
-		$g = $t->fieldgroup;
+		// // Remove the fieldgenerator process admin page
+		// $setupPage = $this->pages->get('name=field-generator, include=all');
+		// if ($setupPage) {
+		// 	$setupPage->delete();
+		// }
 
-		$f = $this->fields->get('fieldgenerator_template');
-		$f->flags = Template::flagSystemOverride;
-		$f->flags = 0;
-		$g->remove('fieldgenerator_template');
-		$g->save();
-		$this->fields->delete($f);
+		// $t = $this->templates->get("fieldgenerator");
+		// $t->flags = Template::flagSystemOverride;
+		// $t->flags = 0;
+		// $g = $t->fieldgroup;
 
-		$f = $this->fields->get('fieldgenerator_parentid');
-		$f->flags = Template::flagSystemOverride;
-		$f->flags = 0;
-		$g->remove('fieldgenerator_parentid');
-		$g->save();
-		$this->fields->delete($f);
+		// $f = $this->fields->get('fieldgenerator_template');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove('fieldgenerator_template');
+		// $g->save();
+		// $this->fields->delete($f);
 
-		$f = $this->fields->get('fieldgenerator_field');
-		$f->flags = Template::flagSystemOverride;
-		$f->flags = 0;
-		$g->remove('fieldgenerator_field');
-		$g->save();
-		$this->fields->delete($f);
+		// $f = $this->fields->get('fieldgenerator_parentid');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove('fieldgenerator_parentid');
+		// $g->save();
+		// $this->fields->delete($f);
 
-		$f = $this->fields->get('fieldgenerator_length');
-		$f->flags = Template::flagSystemOverride;
-		$f->flags = 0;
-		$g->remove('fieldgenerator_length');
-		$g->save();
-		$this->fields->delete($f);
+		// $f = $this->fields->get('fieldgenerator_field');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove('fieldgenerator_field');
+		// $g->save();
+		// $this->fields->delete($f);
 
-		$f = $this->fields->get('fieldgenerator_dictionary');
-		$f->flags = Template::flagSystemOverride;
-		$f->flags = 0;
-		$g->remove($f);
-		$g->save();
-		$this->fields->delete($f);
+		// $f = $this->fields->get('fieldgenerator_length');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove('fieldgenerator_length');
+		// $g->save();
+		// $this->fields->delete($f);
 
-		$this->templates->delete($t);
-		$this->fieldgroups->delete($g);
+		// $f = $this->fields->get('fieldgenerator_dictionary');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove($f);
+		// $g->save();
+		// $this->fields->delete($f);
+
+		// $this->templates->delete($t);
+		// $this->fieldgroups->delete($g);
 	}
 	
 }
