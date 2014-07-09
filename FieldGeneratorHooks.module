@@ -64,7 +64,7 @@ class FieldGeneratorHooks extends WireData implements Module
 		$pageTemplate = $page->template;
 		
 		// check if it matches against some rule
-		foreach (wire('pages')->find("template=fieldgenerator") as $rule) 
+		foreach (wire('pages')->find("template=fieldgenerator, check_access=0") as $rule) 
 		{
 			// initiate or reset things
 			$ParentMatch = false;
