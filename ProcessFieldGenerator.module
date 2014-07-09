@@ -18,7 +18,8 @@ class ProcessFieldGenerator extends Process
 			'version' => 99, 
 			'summary' => 'Generate random strings for any field',
 			'href' => 'https://github.com/plauclair/FieldGenerator', 
-			'singular' => true, 
+			'singular' => true,
+			'installs' => 'FieldGeneratorHooks' 
 			);
 	}
 
