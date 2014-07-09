@@ -74,7 +74,7 @@ class ProcessFieldGenerator extends Process
 				));
 			}
 		} else {
-			$noSettings = __("<h2>There are no rules set, click on the button below to add one.</h2>");
+			$noSettings = __("There are no rules set, click on the button below to add one.");
 		}
 		$table->action(array(__('Add rule') => "" . 'addrule/'));
 		return $styles . $noSettings . $table->render();
@@ -202,7 +202,7 @@ class ProcessFieldGenerator extends Process
 
 	public function ___uninstall() 
 	{	
-		
+
 		// // Remove the fieldgenerator settings pages (fieldgenerator template)
 		// $settings = $this->pages->find('template=fieldgenerator, include=all');
 		// if ($settings) {
