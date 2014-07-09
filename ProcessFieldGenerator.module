@@ -1,0 +1,264 @@
+<?php
+
+/**
+ * Field generator module
+ *
+ * ProcessWire 2.x 
+ * Copyright (C) 2014 by Pierre-Luc Auclair 
+ * Licensed under The MIT License (MIT), see README.md
+ */
+
+class ProcessFieldGenerator extends Process
+{
+
+	public static function getModuleInfo() 
+	{
+		return array(
+			'title' => 'Field Generator', 
+			'version' => 99, 
+			'summary' => 'Generate random strings for any field - Admin panel',
+			'href' => 'https://github.com/plauclair/FieldGenerator', 
+			'singular' => true, 
+			);
+	}
+
+	/**
+	* Setup page
+	*/
+
+	public function ___execute()
+	{	
+		$styles = "<style>
+			.fg-override.ui-state-default {
+				height:auto;
+				line-height:80%;
+				padding:5px 8px;
+				margin-right: 10px;
+			}
+			.fg-override.ui-state-hover {
+				height:auto;
+				line-height:80%;
+				padding:5px 8px;
+				margin-right: 10px;
+			}
+			.fg-trash {
+				vertical-align:middle;
+			}
+			</style>";
+		$table = $this->modules->get("MarkupAdminDataTable");
+		$table->setSortable(false); 
+		$table->setEncodeEntities(false);
+		$table->headerRow(array(
+			__("Template Name"),
+			__("Parent ID"),
+			__("Field Name*"),
+			__("Length*"),
+			__("Dictionary*"),
+			__("Actions")
+			));
+		$settings = $this->pages->find("template=fieldgenerator");
+		$noSettings = "";
+		if(count($settings) > 0){
+			foreach ($settings as $s) {
+				$table->row(array(
+					"<form method=\"post\" action=\"saverule/\">" .
+					"<input type=\"hidden\" name=\"id\" value=\"$s->id\">" .
+					"<input type=\"text\" name=\"template\" value=\"{$s->fieldgenerator_template}\">",
+					"<input type=\"text\" name=\"parentid\" value=\"{$s->fieldgenerator_parentid}\">",
+					"<input type=\"text\" name=\"field\" value=\"{$s->fieldgenerator_field}\">",
+					"<input type=\"text\" name=\"length\" value=\"{$s->fieldgenerator_length}\">",
+					"<input type=\"text\" name=\"dictionary\" value=\"{$s->fieldgenerator_dictionary}\">",
+					"<input type=\"submit\" value=\"Save\" class=\"ui-button fg-override ui-state-default\"> " . 
+					"<a href=\"deleterule/?id={$s->id}\" class=\"fg-trash\"><i class=\"fa fa-trash-o\"></i></a>" .
+					"</form>"
+				));
+			}
+		} else {
+			$noSettings = __("<h2>There are no rules set, click on the button below to add one.</h2>");
+		}
+		$table->action(array(__('Add rule') => "" . 'addrule/'));
+		return $styles . $noSettings . $table->render();
+	}
+
+	public function ___executeAddRule() 
+	{
+		$setupPage = $this->pages->get('template=admin, name=field-generator');
+		$s = new Page();
+		$s->parent = $setupPage;
+		$s->template = "fieldgenerator";
+		$s->title = "Field Generator Rule";
+		$s->fieldgenerator_length = 6;
+		$s->fieldgenerator_dictionary = "1234567890";
+		$s->save();
+		$this->session->redirect("..");
+	}
+
+	public function ___executeDeleteRule() 
+	{
+		$id = $this->input->get->id;
+		$s = $this->pages->get($id);
+		$s->delete();
+		$this->session->redirect("..");
+	}
+
+	public function ___executeSaveRule() 
+	{
+		$id = $this->input->post->id;
+		$s = $this->pages->get($id);
+		$s->fieldgenerator_template = $this->sanitizer->text(trim($this->input->post->template));
+		$s->fieldgenerator_parentid = $this->sanitizer->text(trim($this->input->post->parentid));
+		$s->fieldgenerator_field = $this->sanitizer->text(trim($this->input->post->field));
+		$s->fieldgenerator_length = $this->sanitizer->text(trim($this->input->post->length));
+		$s->fieldgenerator_dictionary = $this->sanitizer->text(trim($this->input->post->dictionary));
+		$s->save();
+		$this->session->redirect("..");
+	}
+
+	/**
+	 * Install and uninstall
+	 */
+
+	public function ___install() 
+	{	
+		// create Setup > Field generator page if it doesn't exist
+		$page = $this->pages->get('template=admin, name=field-generator');
+		if(!$page->id){
+			$p = new Page(); 
+			$p->template = 'admin'; 
+			$p->parent = $this->pages->get($this->config->adminRootPageID)->child('name=setup');	 
+			$p->name = 'field-generator';
+			$p->title = 'Field Generator';
+			$p->process = "ProcessFieldGenerator";
+			$p->save();
+		}
+
+		// create required fields
+		if (!$this->fields->get('fieldgenerator_template')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_template";
+			$f->type = "Text";
+			$f->label = "Template";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
+
+		if (!$this->fields->get('fieldgenerator_parentid')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_parentid";
+			$f->type = "Text";
+			$f->label = "Parent ID";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
+
+		if (!$this->fields->get('fieldgenerator_field')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_field";
+			$f->type = "Text";
+			$f->label = "Field name";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
+
+		if (!$this->fields->get('fieldgenerator_length')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_length";
+			$f->type = "Integer";
+			$f->label = "Length";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
+
+		if (!$this->fields->get('fieldgenerator_dictionary')) {
+			$f = new Field();
+			$f->name = "fieldgenerator_dictionary";
+			$f->type = "Text";
+			$f->label = "Dictionary";
+			$f->flags = Field::flagSystem;
+			$f->save();
+		}
+
+		//create required template
+		if (!$this->templates->get('fieldgenerator')) {
+			$g = new Fieldgroup();
+			$g->name = "fieldgenerator";
+			$g->add("title");
+			$g->add("fieldgenerator_template");
+			$g->add("fieldgenerator_parentid");
+			$g->add("fieldgenerator_field");
+			$g->add("fieldgenerator_length");
+			$g->add("fieldgenerator_dictionary");
+			$g->save();
+
+
+			$t = new Template();
+			$t->name = "fieldgenerator";
+			$t->flags = Template::flagSystem;
+			$t->set('parentTemplates',array(2));
+			$t->fields = $g;
+			$t->save();
+		}
+	}
+
+	public function ___uninstall() 
+	{	
+		
+		// // Remove the fieldgenerator settings pages (fieldgenerator template)
+		// $settings = $this->pages->find('template=fieldgenerator, include=all');
+		// if ($settings) {
+		// 	foreach ($settings as $s) {
+		// 		$s->delete();
+		// 	}
+		// }
+
+		// // Remove the fieldgenerator process admin page
+		// $setupPage = $this->pages->get('name=field-generator, include=all');
+		// if ($setupPage) {
+		// 	$setupPage->delete();
+		// }
+
+		// $t = $this->templates->get("fieldgenerator");
+		// $t->flags = Template::flagSystemOverride;
+		// $t->flags = 0;
+		// $g = $t->fieldgroup;
+
+		// $f = $this->fields->get('fieldgenerator_template');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove('fieldgenerator_template');
+		// $g->save();
+		// $this->fields->delete($f);
+
+		// $f = $this->fields->get('fieldgenerator_parentid');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove('fieldgenerator_parentid');
+		// $g->save();
+		// $this->fields->delete($f);
+
+		// $f = $this->fields->get('fieldgenerator_field');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove('fieldgenerator_field');
+		// $g->save();
+		// $this->fields->delete($f);
+
+		// $f = $this->fields->get('fieldgenerator_length');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove('fieldgenerator_length');
+		// $g->save();
+		// $this->fields->delete($f);
+
+		// $f = $this->fields->get('fieldgenerator_dictionary');
+		// $f->flags = Template::flagSystemOverride;
+		// $f->flags = 0;
+		// $g->remove($f);
+		// $g->save();
+		// $this->fields->delete($f);
+
+		// $this->templates->delete($t);
+		// $this->fieldgroups->delete($g);
+	}
+	
+}
