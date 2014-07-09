@@ -29,6 +29,8 @@ Field Generator makes no effort to find conflicting rules. If two different rule
 
 **Versions**
 
+0.9.9 - Fixes an access problem preventing users other than the superadmin to use it and minor bugs
+
 0.9.0 - Adds language fields support.
 
 0.8.0 - Initial release version, with Setup panel support.
