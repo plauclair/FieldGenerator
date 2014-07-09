@@ -111,7 +111,7 @@ class FieldGeneratorHooks extends WireData implements Module
 				if (method_exists($page->$field, "setLanguageValue") or $field == "name") {
 					foreach ($this->languages as $language) {
 						// name field needs a special way of doing things
-						if ($field = "name") {
+						if ($field == "name") {
 							// if this is the default language (not necessarily LanguageSupportPageNames)
 							if ($language->name == "default") $page->$field = $value;
 							// or set language page name

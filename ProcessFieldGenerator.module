@@ -16,7 +16,7 @@ class ProcessFieldGenerator extends Process
 		return array(
 			'title' => 'Field Generator', 
 			'version' => 99, 
-			'summary' => 'Generate random strings for any field - Admin panel',
+			'summary' => 'Generate random strings for any field',
 			'href' => 'https://github.com/plauclair/FieldGenerator', 
 			'singular' => true, 
 			);
